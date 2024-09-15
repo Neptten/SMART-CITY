@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+      <html>
+        <head>
+          <base target="_top">
+          <meta charset="utf-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1">
+          <title>SMART CITY</title>
+          <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css" integrity="sha512-MV7K8+y+gLIBoVD59lQIYicR65iaqukzvf/nwasF0nqhPay5w/9lJmVM2hMDcnK1OnMGCdVK+iQrJ7lzPJQd1w==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+          <link rel="shortcut icon" type="image/x-icon" href="docs/images/favicon.ico" />
+          <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css" integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin=""/>
+          <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js" integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+  <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+
+          <style>
+
+        		html, body {
+        			height: 100%;
+        			margin: 0;
+        		}
+        		.leaflet-container {
+        			margin:auto;
+        			max-width: 100%;
+        			max-height: 100%;
+        		}
+
+            #app{
+              display: none;
+            }
+
+        	</style>
+
+        </head>
+        <body>
+
+          <div class="column is-full">
+            <!--  - - - - - - - -  ENTETE   - - - - - - - - -->
+            <section class="hero is-success">
+                <div class="hero-body">
+                <h1 class="title" style="text-align:center" >
+                  SMART CITY
+                </h1>
+              </div>
+            </section>
+              <!--  - - - - - - - -  MENU   - - - - - - - - -->
+            <nav class="navbar has-background-light" role="navigation" aria-label="main navigation">
+            <div class="navbar-brand">
+              <a class="navbar-item" href="index.html">
+               <i class="fa fa-house"></i>
+            </a>
+            <a role="button" class="navbar-burger" aria-label="menu" aria-expanded="false" data-target="navbarBasicExample">
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+                <span aria-hidden="true"></span>
+              </a>
+            </div>
+            <div id="navbarBasicExample" class="navbar-menu">
+              <div class="navbar-start">
+                <a class="navbar-item" href="">
+                  Téléchargement
+                </a>
+              </div>
+            </div>
+          </nav>
+
+          <!--  - - - - - - - -  DIV CONTENANT LA CARTE   - - - - - - - - -->
+
+          <div id="map" style="width: 2000px; height: 750px;"></div>
+
+          <!--  - - - - - - - -  SCRIPT POUR LA CARTE   - - - - - - - - -->
+          <script>
+          	const map = L.map('map').setView([43.69143, -0.27631], 17);
+          	const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          		maxZoom: 19,
+          		attribution: '© <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          	}).addTo(map);
+          </script>
+          </div>
+
+          <!--  - - - - - - - -  SCRIPT POUR BURGER DU MENU   - - - - - - - - -->
+          <script type="text/javascript">
+          document.addEventListener('DOMContentLoaded', () => {
+          // Get all "navbar-burger" elements
+          const $navbarBurgers = Array.prototype.slice.call(document.querySelectorAll('.navbar-burger'), 0);
+          // Add a click event on each of them
+          $navbarBurgers.forEach( el => {
+          el.addEventListener('click', () => {
+          // Get the target from the "data-target" attribute
+          const target = el.dataset.target;
+          const $target = document.getElementById(target);
+
+          // Toggle the "is-active" class on both the "navbar-burger" and the "navbar-menu"
+          el.classList.toggle('is-active');
+          $target.classList.toggle('is-active');
+
+        });
+        });
+      });
+        </script>
+
+    <!--  - - - - - - - -  Affichage données de l'OC selectionné   - - - - - - - - -->
+
+    <div id="app" class="columns">
+
+      <!--  - - - - - - - -  Affichage données de l'OC température et humidité   - - - - - - - - -->
+
+      <div v-if="type == 'OC_TEMP'" class="column is-half mx-3">
+        <input type="date" v-model="dateChoisie" @change="rechercherDonneesTempHum">
+            <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
+        <thead>
+          <tr>
+            <th>Id Oc</th>
+            <th>Date</th>
+            <th>Température</th>
+            <th>Humidité</th>
+            <th>Indice de Chaleur</th>
+          </tr>
+        </thead>
+        <tbody>
+
+          <tr v-for="data in donnees">
+            <td>{{ data.id_oc }}</td>
+            <td>{{ data.date }}</td>
+            <td>{{ data.temperature }}</td>
+            <td>{{ data.humidite }}</td>
+            <td>{{ data.idc }}</td>
+          </tr>
+
+      </tbody>
+      </table>
+          </div>
+
+          <!--  - - - - - - - -  Affichage données de l'OC air   - - - - - - - - -->
+
+          <div v-if="type == 'OC_AIR'" class="column is-half mx-3">
+            <input type="date" v-model="dateChoisie" @change="rechercherDonneesAir">
+                <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
+            <thead>
+              <tr>
+                <th>Id Oc</th>
+                <th>Date</th>
+                <th>Pm 2.5</th>
+                <th>Pm 10</th>
+                <th>IQA</th>
+              </tr>
+            </thead>
+            <tbody>
+
+              <tr v-for="data in donnees">
+                <td>{{ data.id_oc }}</td>
+                <td>{{ data.date }}</td>
+                <td>{{ data.pm2_5 }}</td>
+                <td>{{ data.pm10 }}</td>
+                <td>{{ data.iqa }}</td>
+              </tr>
+
+          </tbody>
+          </table>
+              </div>
+
+              <!--  - - - - - - - -  Affichage données de l'OC wifi   - - - - - - - - -->
+
+              <div v-if="type == 'OC_WIFI'" class="column is-half mx-3">
+                <input type="date" v-model="dateChoisie" @change="rechercherDonneesWifi">
+                    <table class="table is-bordered is-striped is-narrow is-hoverable is-fullwidth">
+                <thead>
+                  <tr>
+                    <th>Id Oc</th>
+                    <th>Date</th>
+                    <th>Température</th>
+                    <th>Humidité</th>
+                    <th>Pm 2.5</th>
+                    <th>Pm 10</th>
+                    <th>IQA</th>
+                    <th>Indice de Chaleur</th>
+                  </tr>
+                </thead>
+                <tbody>
+
+                  <tr v-for="data in donnees">
+                    <td>{{ data.id_oc }}</td>
+                    <td>{{ data.date }}</td>
+                    <td>{{ data.temperature }}</td>
+                    <td>{{ data.humidite }}</td>
+                    <td>{{ data.pm2_5 }}</td>
+                    <td>{{ data.pm10 }}</td>
+                    <td>{{ data.iqa }}</td>
+                    <td>{{ data.idc }}</td>
+                  </tr>
+
+              </tbody>
+              </table>
+                  </div>
+
+          <!--  - - - - - - - -  DIV CONTENANT LE GRAPHIQUE   - - - - - - - - -->
+
+          <div class="column">
+            <div style="margin:auto">
+              <div id="chart"></div>
+            </div>
+          </div>
+
+    </div>
+
+          <!--  - - - - - - - -  SCRIPT POUR AFFICHER DONNEES   - - - - - - - - -->
+          <script type="text/javascript">
+            var monObjet = new Vue({
+              el: '#app',
+              data: {
+                  titre: "Données d'un OC :",
+                  oc:{},
+                  donnees:{},
+                  ocChoisi:"",
+                  dateChoisie:"",
+                  type:""
+
+              },
+              methods: {
+
+                //méthode pour récupérer les coordonnées des oc pour pouvoir les placer sur la carte avec leurs noms correspondant
+                rechercherCoordonnées: function () {
+                  fetch("OC")
+                  .then((response) => {
+                    console.log("Réponse HTTP");
+                    return response.json();
+                  }).then((body) => {
+                    console.log("JSON parsé");
+                    this.oc = body;
+
+                    for (var i = 0; i < this.oc.length+1; i++) {
+                          L.marker([this.oc[i].latitude, this.oc[i].longitude],{title: this.oc[i].type_oc}).addTo(map)
+                          .bindPopup("<a onclick='monObjet.choisir("+this.oc[i].id_oc+","+i+")' href='#oc_select'>Cliquer pour afficher "+this.oc[i].type_oc+"</a>");
+                        }
+
+                  })
+                },
+
+                //méthode pour récupérer les données de température et d'humidité depuis la base de données
+                rechercherDonneesTempHum: function () {
+                    fetch("tempHum/"+this.ocChoisi+"?date="+this.dateChoisie)
+                  .then((response) => {
+                    console.log("Réponse HTTP");
+                    return response.json();
+                  }).then((body) => {
+                    console.log("JSON parsé");
+                    this.donnees = body;
+
+                    // ajouter ligne pour graphique
+                    var temperature = [];
+                    var humidite = [];
+                    var idc = [];
+                    for(ligne of this.donnees){
+                      temperature.push({"x":ligne.date, "y":ligne.temperature});
+                      humidite.push({"x":ligne.date, "y":ligne.humidite});
+                      idc.push({"x":ligne.date, "y":ligne.idc});
+                    }
+                    chart.updateSeries([{
+                      name: 'Température',
+                      data: temperature
+                    },
+                    {
+                      name: 'Humidité',
+                      data: humidite
+                    },
+                    {
+                      name: 'Indice de chaleur',
+                      data: idc
+                    }
+                  ])
+
+                  })
+                },
+
+                //méthode pour récupérer les données de qualité de l'air depuis la base de données
+                rechercherDonneesAir: function () {
+                    fetch("air/"+this.ocChoisi+"?date="+this.dateChoisie)
+                  .then((response) => {
+                    console.log("Réponse HTTP");
+                    return response.json();
+                  }).then((body) => {
+                    console.log("JSON parsé");
+                    this.donnees = body;
+
+                    // ajouter ligne pour graphique
+                    var pm2_5 = [];
+                    var pm10 = [];
+                    for(ligne of this.donnees){
+                      pm2_5.push({"x":ligne.date, "y":ligne.pm2_5});
+                      pm10.push({"x":ligne.date, "y":ligne.pm10});
+                    }
+                    chart.updateSeries([{
+                      name: 'pm2_5',
+                      data: pm2_5
+                    },
+                    {
+                      name: 'pm_10',
+                      data: pm10
+                    }])
+
+                  })
+                },
+
+                //méthode pour récupérer les données de qualité de l'air, de température et d'humidité des co Wifi depuis la base de données
+                rechercherDonneesWifi: function () {
+                  fetch("wifi/"+this.ocChoisi+"?date="+this.dateChoisie)
+                .then((response) => {
+                  console.log("Réponse HTTP");
+                  return response.json();
+                }).then((body) => {
+                  console.log("JSON parsé");
+                  this.donnees = body;
+
+                  // ajouter ligne pour graphique
+                  var temperature = [];
+                  var humidite = [];
+                  var pm2_5 = [];
+                  var pm10 = [];
+                  var idc = [];
+                  for(ligne of this.donnees){
+                    temperature.push({"x":ligne.date, "y":ligne.temperature});
+                    humidite.push({"x":ligne.date, "y":ligne.humidite});
+                    pm2_5.push({"x":ligne.date, "y":ligne.pm2_5});
+                    pm10.push({"x":ligne.date, "y":ligne.pm10});
+                    idc.push({"x":ligne.date, "y":ligne.idc});
+                  }
+                  chart.updateSeries([{
+                    name: 'Température',
+                    data: temperature
+                  },
+                  {
+                    name: 'Humidité',
+                    data: humidite
+                  },
+                  {
+                    name: 'pm2_5',
+                    data: pm2_5
+                  },
+                  {
+                    name: 'pm_10',
+                    data: pm10
+                  },
+                  {
+                    name: 'Indice de chaleur',
+                    data: idc
+                  }
+                ])
+
+                })
+              },
+
+                // fonction choisir exécuter lors du clic sur un OC pour lancer la fonction correspondante au type d'oc choisis
+                choisir: function(id, i){
+                  console.log(id);
+                  console.log(i);
+                  this.ocChoisi = id;
+                  this.type = this.oc[i].type_oc;
+                  console.log(this.type);
+                  if (this.type == 'OC_AIR' ) {
+                    // actualisation de la fonction toute les minutes
+                    setInterval (this.rechercherDonneesAir, 60000);
+                    this.rechercherDonneesAir();
+                  }
+                  if (this.type == 'OC_TEMP' ) {
+                    // actualisation de la fonction toute les minutes
+                    setInterval (this.rechercherDonneesTempHum, 60000);
+                    this.rechercherDonneesTempHum();
+                  }
+                  if (this.type == 'OC_WIFI' ) {
+                    // actualisation de la fonction toute les minutes
+                    setInterval (this.rechercherDonneesWifi, 60000);
+                    this.rechercherDonneesWifi();
+                  }
+
+                  document.getElementById("app").style.display="flex";
+                  document.getElementById("map").style.display="none";
+
+                }
+              },
+
+              mounted() {
+
+                // initialisation date
+                dateMaintenant = new Date();
+                this.dateChoisie = (dateMaintenant.getFullYear()+"-"+(dateMaintenant.getMonth()+1)+"-"+dateMaintenant.getDate())
+
+                // appel de la fonction rechercherCoordonnées pour que les marqueurs soit placés dès l'ouverture de la page
+                this.rechercherCoordonnées()
+
+              }
+
+            })
+
+
+          </script>
+
+            <!--  - - - - - - - -  SCRIPT pour représenter une date pour l'axe des x   - - - - - - - - -->
+            <script type="text/javascript">
+              var options = {
+                  chart: {
+                  type: 'line'
+                },
+                series: [ ],
+                xaxis: {
+                  type: "datetime",
+                  labels: {
+                  format: 'dd/MM HH:mm'
+                  }
+                }
+              }
+          var chart = new ApexCharts(document.querySelector("#chart"), options);
+          chart.render();
+          </script>
+
+        </body>
+      </html>
